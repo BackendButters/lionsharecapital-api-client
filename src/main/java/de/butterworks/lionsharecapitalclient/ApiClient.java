@@ -19,13 +19,13 @@ public class ApiClient {
     }
 
     public ApiClient() {
-        this.apiUrl = "https://api.lionshare.capital/api/prices";
+        this.apiUrl = "https://api.lionshare.capital/api";
     }
 
     public Quotes getQuotes(final Period period) {
 
         final ClientResponse response = Client.create()
-                .resource(apiUrl + String.format("?period=", period.toString().toLowerCase()))
+                .resource(apiUrl + String.format("/prices?period=", period.toString().toLowerCase()))
                 .accept("application/json")
                 .get(ClientResponse.class);
 
@@ -35,8 +35,16 @@ public class ApiClient {
         return new Quotes(gson.fromJson(response.getEntity(String.class), ApiQuoteResponse.class), period);
     }
 
-    public static void main(String[] args) {
-        Quotes q = new ApiClient().getQuotes(Period.DAY);
-        System.out.println("asd");
+    public Capitalizations getCapitalizations() {
+
+        final ClientResponse response = Client.create()
+                .resource(apiUrl + "/markets")
+                .accept("application/json")
+                .get(ClientResponse.class);
+
+        if (response.getStatus() != 200) {
+            throw new RuntimeException(String.format("Request failed with HTTP code %s", response.getStatus()));
+        }
+        return gson.fromJson(response.getEntity(String.class), Capitalizations.class);
     }
 }
